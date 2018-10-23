@@ -7,6 +7,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');
+var snatportexhaustionRouter = require('./routes/snatportexhaustion');
 
 var app = express();
 
@@ -25,11 +26,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/', express.static(__dirname + '/www')); // redirect root
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
 app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
+app.use('/js', express.static(__dirname + '/public/Scripts')); // redirect JS jQuery
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
+app.use('/css', express.static(__dirname + '/public/Content')); // redirect CSS bootstrap
+
+
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);
+app.use('/SNatPortExhaustion', snatportexhaustionRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

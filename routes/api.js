@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 const Ajv = require('ajv');
-const ajv = Ajv({allErrors:true});
+const ajv = Ajv({ allErrors:true, removeAdditional:'all' });
 var nconf = require('nconf');
 var spawn = require('child_process').spawn;
 var netstat = require('./../tools/netstat');

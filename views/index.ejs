@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= title %></title>
-    <!--<link rel='stylesheet' href='/stylesheets/style.css' /> -->
-    <link rel="stylesheet" href="/css/bootstrap.min.css">
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>    
+    <% include partials/header %>
   </head>
   <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
+    <% include partials/menu %>
+    <div class="container body-content">
+      <div class="jumbotron">
+          <h1>NodeJS Express Port Exhaustion</h1>
+          <p class="lead">This web site provide you a demo for test purpose only. It opens X number of connection to a given target.</p>
+          <p><a href="../" class="btn btn-primary btn-lg">SNatPortExhaustion &raquo;</a></p>
+      </div>
+      <% include partials/footer %>
+    </div>
   </body>
 </html>
