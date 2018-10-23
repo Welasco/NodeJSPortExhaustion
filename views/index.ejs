@@ -9,8 +9,12 @@
       <div class="jumbotron">
           <h1>NodeJS Express Port Exhaustion</h1>
           <p class="lead">This web site provide you a demo for test purpose only. It opens X number of connection to a given target.</p>
-          <p><a href="../" class="btn btn-primary btn-lg">SNatPortExhaustion &raquo;</a></p>
-      </div>
+          <p><a href="../snatportexhaustion" class="btn btn-primary btn-lg">SNatPortExhaustion &raquo;</a></p>
+          <b>Host Name:</b> <code class="highlighter-rouge"><%= hostname %></code>
+          <br><b>User Agent: </b> <code class="highlighter-rouge"><%= useragent %></code>
+          <br><b>Request received from:</b> <code class="highlighter-rouge"><%= ip %></code>
+          <br><b>Forwarder IP: </b> <code class="highlighter-rouge"> <%= ipfw %></code>
+      </div>    
       <% include partials/footer %>
     </div>
   </body>
