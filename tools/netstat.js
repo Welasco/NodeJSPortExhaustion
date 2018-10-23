@@ -1,6 +1,5 @@
 var netstat = require('node-netstat');
 
-
 function getNetstatOpen(pid) {
     var connections = 0;
     var result = netstat({
