@@ -35,7 +35,7 @@ app.use('/css', express.static(__dirname + '/public/Content')); // redirect CSS 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);
-app.use('/SNatPortExhaustion', snatportexhaustionRouter);
+app.use('/snatportexhaustion', snatportexhaustionRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

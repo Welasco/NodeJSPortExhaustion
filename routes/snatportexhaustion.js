@@ -3,7 +3,7 @@ var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('SNatPortExhaustion', { title: 'Express' });
+  res.render('snatportexhaustion', { title: 'Express' });
 });
 
 module.exports = router;
