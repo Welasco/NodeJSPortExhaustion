@@ -3,12 +3,27 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const appInsights = require("applicationinsights");
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');
 var snatportexhaustionRouter = require('./routes/snatportexhaustion');
 
+
+
+// Azure Application Insight Setup
+/*
+appInsights.setup("cd395050-e6eb-4845-b443-169e4250e271")
+    .setAutoDependencyCorrelation(true)
+    .setAutoCollectRequests(true)
+    .setAutoCollectPerformance(true)
+    .setAutoCollectExceptions(true)
+    .setAutoCollectDependencies(true)
+    .setAutoCollectConsole(true)
+    .setUseDiskRetryCaching(true)
+    .start();
+*/
 var app = express();
 
 // view engine setup
@@ -39,8 +54,17 @@ app.use('/snatportexhaustion', snatportexhaustionRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
+
+  // Azure Application Insight
+  /*
+  if ( req.method === "GET" ) {
+    appInsights.defaultClient.trackNodeHttpRequest({request: req, response: res});
+  }
+  */
   next(createError(404));
 });
+
+
 
 // error handler
 app.use(function(err, req, res, next) {
