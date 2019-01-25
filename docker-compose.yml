@@ -1,0 +1,34 @@
+version: "3.6"
+services: 
+  frontend:
+    image: welasco/nodejsportexhaustion
+    ports:
+      - "3000:3000"
+      - "2222:2222"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      retart_policy:
+        condition: on-failure
+    environment:
+      backend: backend
+      backendport: 3001
+      ENV_mode: frontend
+  backend:
+    image: welasco/nodejsportexhaustion
+    ports:
+      - "3001"
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 2
+        delay: 10s
+      retart_policy:
+        condition: on-failure
+    depends_on:
+      - frontend
+    environment:
+      PORT: 3001
+      ENV_mode: backend

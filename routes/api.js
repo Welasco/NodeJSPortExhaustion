@@ -4,7 +4,9 @@ const Ajv = require('ajv');
 const ajv = Ajv({ allErrors:true, removeAdditional:'all' });
 var nconf = require('nconf');
 var spawn = require('child_process').spawn;
+var os = require('os')
 var netstat = require('./../tools/netstat');
+var webpaicall = require('./../tools/webapicall');
 var socketcmd = require('./../models/socketcmd');
 var socketstatus = require('./../models/socketstatus');
 
@@ -115,6 +117,35 @@ router.get('/Socket/Stop', function(req, res, next) {
   let Sstatus = socketstatus.Socketstatus;
   res.send(Sstatus); 
   res.end();    
+});
+
+router.get('/backend', function(req, res, next) {
+  function callbackapi(responsedata) {
+    let data = JSON.parse(responsedata)
+    console.log("Log in callbackapi: " + data);
+
+    res.send(data);
+    res.end();    
+  }
+  webpaicall.webapicall('get', process.env.backend, process.env.backendport, '/api/backendapi', callbackapi)
+});
+
+router.get('/backendapi', function(req, res, next) {
+  var hostname = os.hostname();
+  var ip = req.ip;
+  var ipfw = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  var useragent = req.headers['user-agent']
+
+  var htmlvar = {
+    hostname: hostname,
+    ip: ip,
+    ipfw: ipfw,
+    useragent: useragent,
+    backenddatetime: new Date()
+  };
+
+  res.send(htmlvar);
+  res.end();
 });
 
 module.exports = router;
