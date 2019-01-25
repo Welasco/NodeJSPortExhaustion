@@ -1,10 +1,9 @@
-FROM node:carbon
+FROM node:11.7.0-stretch
 
 # Create app directory
 WORKDIR /home/site/wwwroot
 
 COPY startup /opt/startup
-COPY sshd_config /etc/ssh/
 
 # Install Tools
 RUN apt-get update \
@@ -14,11 +13,11 @@ RUN npm install -g pm2 \
     && mkdir -p /home/LogFiles \
     && echo "root:Docker!" | chpasswd \
     && echo "cd /home" >> /etc/bash.bashrc \
-    && apt install -y --no-install-recommends openssh-server vim curl wget tcptraceroute \
     && cd /opt/startup \
     && npm install \
     && chmod 755 /opt/startup/init_container.sh
 
+COPY sshd_config /etc/ssh/
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
