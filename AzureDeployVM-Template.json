@@ -1,0 +1,243 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+      "DockerSrvAmount": {
+        "type": "int",
+        "metadata": {
+          "description": "The amount of Docker Nodes to be created."
+        }
+      }
+    },
+    "variables": {
+      "adminUsername": "DockerAdmin",
+      "adminPassword": "No_P@ssw0rd!",
+      "addressPrefix": "10.11.0.0/16",
+      "subnetName": "DefaultSubnet",
+      "subnetPrefix": "10.11.0.0/24",
+      "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
+      "virtualNetworkName": "Docker-VNET",
+      "_location": "[resourceGroup().location]",
+      "availabilitySetName": "DockerVM-availabilitySet",
+      "lbName": "DockerVM-LoadBalancer",
+      "lbNameIP": "DockerVM-LoadBalancer-IP",
+      "lbIPFQDN": "DockerVMLB",
+      "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
+      "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/BackendPool1')]",
+      "lbProbeID": "[concat(variables('lbID'),'/probes/tcpProbe')]",
+      "lbBackendPoolName": "BackendPool1",
+      "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/LoadBalancerFrontEnd')]",
+      "RDPServersAmount": "[parameters('DockerSrvAmount')]",
+      "RDPServerName": "DockerVM-",
+      "RDPpublicIPAddressName": "DockerVM-PublicIP-",
+      "RDPnicName": "DockerVM-Nic-",
+      "RDPdnsNameForPublicIP": "[toLower('dockervm-')]"
+    },
+    "resources": [
+      {
+        "apiVersion": "2018-04-01",
+        "type": "Microsoft.Network/virtualNetworks",
+        "name": "[variables('virtualNetworkName')]",
+        "location": "[variables('_location')]",
+        "properties": {
+          "addressSpace": {
+            "addressPrefixes": [
+              "[variables('addressPrefix')]"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "[variables('subnetName')]",
+              "properties": {
+                "addressPrefix": "[variables('subnetPrefix')]"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "apiVersion": "2017-06-01",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "[concat(variables('RDPpublicIPAddressName'),copyIndex(1))]",
+        "location": "[variables('_location')]",
+        "copy": {
+          "name": "publicIPLoop",
+          "count": "[variables('RDPServersAmount')]"
+        },
+        "properties": {
+          "publicIPAllocationMethod": "Dynamic",
+          "dnsSettings": {
+            "domainNameLabel": "[concat(variables('RDPdnsNameForPublicIP'), copyIndex(1), '-', toLower(uniqueString(resourceGroup().id)))]"
+          }
+        }
+      },
+      {
+        "apiVersion": "2018-04-01",
+        "type": "Microsoft.Network/networkInterfaces",
+        "name": "[concat(variables('RDPnicName'),copyIndex(1))]",
+        "location": "[variables('_location')]",
+        "copy": {
+          "name": "nicLoop",
+          "count": "[variables('RDPServersAmount')]"
+        },
+        "dependsOn": [
+          "[concat('Microsoft.Network/publicIPAddresses/', variables('RDPpublicIPAddressName'),copyIndex(1))]",
+          "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
+          "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]"
+        ],
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfig1",
+              "properties": {
+                "privateIPAllocationMethod": "Dynamic",
+                "publicIPAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIPAddresses', concat(variables('RDPpublicIPAddressName'), copyIndex(1)))]"
+                },
+                "subnet": {
+                  "id": "[variables('subnetRef')]"
+                },
+                "loadBalancerBackendAddressPools": [
+                  {
+                    "id": "[concat(resourceId('Microsoft.Network/loadBalancers', variables('lbName')),'/backendAddressPools/', variables('lbBackendPoolName'))]"
+                  }
+                ]                
+              }
+            }
+          ]
+        }
+      },
+      {
+        "type": "Microsoft.Compute/availabilitySets",
+        "name": "[variables('availabilitySetName')]",
+        "apiVersion": "2018-06-01",
+        "location": "[variables('_location')]",
+        "properties": {
+            "PlatformUpdateDomainCount": 3,
+            "PlatformFaultDomainCount": 2
+        },
+        "sku": {
+            "name": "Aligned"
+        }
+      },
+      {
+        "apiVersion": "2017-06-01",
+        "type": "Microsoft.Network/publicIPAddresses",
+        "name": "[variables('lbNameIP')]",
+        "location": "[variables('_location')]",
+        "properties": {
+          "publicIPAllocationMethod": "Dynamic",
+          "dnsSettings": {
+            "domainNameLabel": "[toLower(concat(variables('lbIPFQDN'), '-', toLower(uniqueString(resourceGroup().id))))]"
+          }
+        }
+      },      
+      {
+        "apiVersion": "2018-10-01",
+        "name": "[variables('lbName')]",
+        "type": "Microsoft.Network/loadBalancers",
+        "location": "[resourceGroup().location]",
+        "dependsOn": [
+          "[concat('Microsoft.Network/publicIPAddresses/', variables('lbNameIP'))]"
+        ],
+        "properties": {
+          "frontendIPConfigurations": [
+            {
+              "name": "LoadBalancerFrontEnd",
+              "properties": {
+                "publicIPAddress": {
+                  "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('lbNameIP'))]"
+                }
+              }
+            }
+          ],
+          "backendAddressPools": [
+            {
+              "name": "[variables('lbBackendPoolName')]"
+            }
+          ],
+          "inboundNatRules": [
+          ],
+          "loadBalancingRules": [
+            {
+              "name": "LBRule",
+              "properties": {
+                "frontendIPConfiguration": {
+                  "id": "[variables('frontEndIPConfigID')]"
+                },
+                "backendAddressPool": {
+                  "id": "[variables('lbPoolID')]"
+                },
+                "protocol": "tcp",
+                "frontendPort": 3000,
+                "backendPort": 3000,
+                "enableFloatingIP": false,
+                "idleTimeoutInMinutes": 5,
+                "probe": {
+                  "id": "[variables('lbProbeID')]"
+                }
+              }
+            }
+          ],
+          "probes": [
+            {
+              "name": "tcpProbe",
+              "properties": {
+                "protocol": "tcp",
+                "port": 3000,
+                "intervalInSeconds": 5,
+                "numberOfProbes": 2
+              }
+            }
+          ]
+        }
+      },          
+      {
+        "apiVersion": "2018-04-01",
+        "type": "Microsoft.Compute/virtualMachines",
+        "name": "[concat(variables('RDPServerName'),copyIndex(1))]",
+        "location": "[variables('_location')]",
+        "copy": {
+          "name": "vmLoop",
+          "count": "[variables('RDPServersAmount')]"
+        },
+        "dependsOn": [
+          "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]",
+          "[concat('Microsoft.Network/networkInterfaces/', variables('RDPnicName'), copyIndex(1))]"
+        ],
+        "properties": {
+          "hardwareProfile": {
+            "vmSize": "Standard_D1_v2"
+          },
+          "osProfile": {
+            "computerName": "[concat(variables('RDPServerName'),copyIndex(1))]",
+            "adminUsername": "[variables('adminUsername')]",
+            "adminPassword": "[variables('adminPassword')]"
+          },
+          "storageProfile": {
+            "imageReference": {
+              "publisher": "Canonical",
+              "offer": "UbuntuServer",
+              "sku": "18.04-LTS",
+              "version": "latest"
+            },
+            "osDisk": {
+              "createOption": "FromImage"
+            }
+          },
+          "networkProfile": {
+            "networkInterfaces": [
+              {
+                "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('RDPnicName'),copyIndex(1)))]"
+              }
+            ]
+          },
+          "availabilitySet": {
+            "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName')) ]"
+          }          
+        }
+      }
+    ],
+    "outputs": {
+    }
+  }
