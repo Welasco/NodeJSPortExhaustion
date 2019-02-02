@@ -9,7 +9,7 @@
             "value": "victor"
         },
         "adminPublicKey": {
-            "value": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDA7iE4aukWuYhLnVr5Wo03umxd+COsgJW1WHBIGte90p0WpIV81msg6I58RLpRWtPjzlWR0wmGtnHE1YslPSkWntiHSB15QdxYu6JHPxqnbEa7cm3yJTvUgHhtVRoVOvqC/IwXOVx0NjQxjIbMBq4mskOq6f6y3Wgud7QG3wGpBpvBunENo+noxMZBOXpE/7spMrm8by0e1a/Nf0i5ebK4XL7ZTWsvT7dZmAcZun+2t+GrMJrR4lI9d5k7FYQ++P22ZE22yxvpV99yVIfPzvmHrqSEp+shAhSl4iZT8GjB0cJg9l0gi7jv/lijdsMLbUYKo/KMjNifA7d6/K0gmD1p imported-openssh-key"
+            "value": "ssh-rsa AAAAB3NzaC1yc2EAAA...d6/K0gmD1p imported-openssh-key"
         }
    }
 }

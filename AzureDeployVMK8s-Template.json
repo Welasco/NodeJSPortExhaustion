@@ -383,6 +383,32 @@
             "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('availabilitySetName')) ]"
           }
         }
+      },
+      {
+        "apiVersion": "2016-05-15",
+        "type": "Microsoft.DevTestLab/schedules",
+        "name": "[concat('shutdown-computevm-',variables('RDPServerName'),copyIndex(1))]",
+        "location": "[variables('_location')]",
+        "copy": {
+          "name": "schedulesLoop",
+          "count": "[variables('RDPServersAmount')]"
+        },
+        "dependsOn": [
+          "[concat('Microsoft.Compute/virtualMachines/',variables('RDPServerName'),copyIndex(1))]"
+        ],
+        "properties":{
+          "status": "Enabled",
+          "taskType": "ComputeVmShutdownTask",
+          "dailyRecurrence": {
+            "time": "1900"
+          },
+          "timeZoneId": "Central Standard Time",
+          "notificationSettings": {
+            "status": "Disabled",
+            "timeInMinutes": 30
+          },
+          "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines/',concat(variables('RDPServerName'),copyIndex(1)))]"
+        }
       }
     ],
     "outputs": {
