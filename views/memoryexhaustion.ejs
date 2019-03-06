@@ -62,10 +62,13 @@
                 var dataJSON = JSON.parse(data);
                 return dataJSON;
             }
-        
+            
             function genHTML(genhtml) {
                 var genhtmlJson = jsonParse(genhtml);
                 var varhtml = "<B>Total allocated:</B> " + genhtmlJson.memoryUsage + ' MB<br>';
+                if (genhtmlJson.memoryUsage > 1000) {
+                    varhtml += "<font color=red><B>You are close to NodeJS memory limit of 1.3 GB. If you continue the App will crash.</B></font><br>";
+                }
                 return varhtml;
             }
         
@@ -76,13 +79,15 @@
                 var loading = '<img src="/Content/Images/load.gif" />'
                 $('#divRefresh').html(loading);
             }
-        
+
             function ajaxcallback(result) {
                 console.log("Reached AjaxCallBack");
                 console.log(JSON.stringify(result));
                 var varhtml = genHTML(JSON.stringify(result));
                 $('#divRefresh').html(varhtml);
             }
+
+            apicallasync('GET', null,'/api/getmemoryexhaustion', ajaxcallback);
         
             $('#runasync').click(function (e) {
                 e.preventDefault();
