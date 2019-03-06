@@ -162,8 +162,9 @@ function alloc (size) {
 };
 
 
-const allocations = []; 
-router.get('/memoryexhaustion', function(req, res, next) {
+var allocations = []; 
+
+router.get('/memoryexhaustion/blow', function(req, res, next) {
   let allocationStep = 100000 * 1024;
 
   const allocation = alloc(allocationStep);
@@ -183,7 +184,21 @@ router.get('/memoryexhaustion', function(req, res, next) {
   res.end();
 });
 
-router.get('/getmemoryexhaustion', function(req, res, next) {
+router.get('/memoryexhaustion/get', function(req, res, next) {
+  const mu = process.memoryUsage();
+  const mbNow = mu['heapUsed'] / 1024 / 1024;
+  const currentmemory = Math.round(mbNow * 100) / 100;
+  var htmlvar = {
+    memoryUsage: currentmemory
+  };
+  res.send(htmlvar);
+  res.end();
+});
+
+router.get('/memoryexhaustion/release', function(req, res, next) {
+  allocations = [];
+  allocations.length = 0;
+  global.gc();
   const mu = process.memoryUsage();
   const mbNow = mu['heapUsed'] / 1024 / 1024;
   const currentmemory = Math.round(mbNow * 100) / 100;

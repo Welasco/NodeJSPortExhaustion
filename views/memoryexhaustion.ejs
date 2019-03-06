@@ -18,6 +18,8 @@
                     <br>
                     <br><br>
                     <input type="submit" id="runasync" value="Blow Memory" class="btn btn-primary btn-default" />
+                    <input type="submit" id="runasyncrelease" value="Release Memory" class="btn btn-primary btn-default" />
+                    <input type="submit" id="runasyncrefresh" value="Refresh" class="btn btn-primary btn-default" />
                     </div>
             </div>
         </form>
@@ -87,13 +89,25 @@
                 $('#divRefresh').html(varhtml);
             }
 
-            apicallasync('GET', null,'/api/getmemoryexhaustion', ajaxcallback);
+            apicallasync('GET', null,'/api/memoryexhaustion/get', ajaxcallback);
         
             $('#runasync').click(function (e) {
                 e.preventDefault();
                 loadingimage();
-                apicallasync('GET', null,'/api/memoryexhaustion', ajaxcallback);
+                apicallasync('GET', null,'/api/memoryexhaustion/blow', ajaxcallback);
             });
+
+            $('#runasyncrelease').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/memoryexhaustion/release', ajaxcallback);
+            });     
+            
+            $('#runasyncrefresh').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/memoryexhaustion/get', ajaxcallback);
+            });             
         
         </script>
 
