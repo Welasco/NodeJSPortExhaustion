@@ -148,4 +148,46 @@ router.get('/backendapi', function(req, res, next) {
   res.end();
 });
 
+//
+// Allocate a certain size of memory to test if it can be done.
+//
+function alloc (size) {
+  const numbers = size / 8;
+  const arr = []
+  arr.length = numbers; // Simulate allocation of 'size' bytes.
+  for (let i = 0; i < numbers; i++) {
+      arr[i] = i;
+  }
+  return arr;
+};
+
+
+const allocations = []; 
+router.get('/memoryexhaustion', function(req, res, next) {
+  var hostname = os.hostname();
+  var ip = req.ip;
+  var ipfw = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  var useragent = req.headers['user-agent']
+
+
+
+  let allocationStep = 100000 * 1024;
+
+  const allocation = alloc(allocationStep);
+  allocations.push(allocation);
+
+  const mu = process.memoryUsage();
+  const mbNow = mu['heapUsed'] / 1024 / 1024;
+  console.log(`Total allocated       ${Math.round(mbNow * 100) / 100} MB`);
+  //console.log(`Total allocated       ${Math.round(mbNow * 100) / 100} GB`);
+  //console.log(`Allocated since start ${Math.round((mbNow - gbStart) * 100) / 100} GB`);
+  const currentmemory = Math.round(mbNow * 100) / 100;
+  var htmlvar = {
+    memoryUsage: currentmemory
+  };
+  console.log("Process Memory Usage: " + mbNow);
+  res.send(htmlvar);
+  res.end();
+});
+
 module.exports = router;

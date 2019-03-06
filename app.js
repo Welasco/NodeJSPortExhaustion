@@ -10,6 +10,7 @@ var usersRouter = require('./routes/users');
 var apiRouter = require('./routes/api');
 var snatportexhaustionRouter = require('./routes/snatportexhaustion');
 var backend = require('./routes/backend');
+var memoryexhaustion = require('./routes/memoryexhaustion');
 
 
 
@@ -53,6 +54,7 @@ app.use('/users', usersRouter);
 app.use('/api', apiRouter);
 app.use('/snatportexhaustion', snatportexhaustionRouter);
 app.use('/backend', backend);
+app.use('/memoryexhaustion', memoryexhaustion);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
