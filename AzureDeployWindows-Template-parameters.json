@@ -1,0 +1,15 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "SrvAmount": {
+            "value": 3
+        },
+        "adminUsername": {
+            "value": "victor"
+        },
+        "adminPublicKey": {
+            "value": "ssh-rsa AAAAB3NzaC1yc2EAAA...d6/K0gmD1p imported-openssh-key"
+        }
+   }
+}
