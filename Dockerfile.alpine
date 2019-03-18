@@ -1,13 +1,26 @@
-FROM node:11.7.0-stretch
+FROM node:11.11.0-alpine
 
 # Create app directory
 WORKDIR /home/site/wwwroot
 
 COPY startup /opt/startup
 
-# Install Tools - nscd is a DNS Cache
-RUN apt-get update \
-    && apt-get install -y net-tools nano openssh-server vim curl wget tcptraceroute nscd tcpdump
+RUN echo "ipv6" >> /etc/modules
+
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/v3.6/community" >> /etc/apk/repositories; \
+    echo "http://dl-cdn.alpinelinux.org/alpine/v3.6/main" >> /etc/apk/repositories;
+
+# Install Tools
+RUN  apk update --no-cache \
+     && apk add openssh \
+     && apk add openrc \
+     && apk add vim \
+     && apk add curl \
+     && apk add wget \
+     && apk add tcptraceroute \
+     && apk add bash \
+     && apk add nano \
+     && apk add net-tools   
 
 RUN npm install -g pm2 \
     && mkdir -p /home/LogFiles \
@@ -15,7 +28,10 @@ RUN npm install -g pm2 \
     && echo "cd /home" >> /etc/bash.bashrc \
     && cd /opt/startup \
     && npm install \
-    && chmod 755 /opt/startup/init_container.sh
+    && chmod 755 /opt/startup/init_container.sh \ 
+    && curl -L https://github.com/sequenceiq/docker-alpine-dig/releases/download/v9.10.2/dig.tgz|tar -xzv -C /usr/local/bin/
+
+
 
 COPY sshd_config /etc/ssh/
 # Install app dependencies

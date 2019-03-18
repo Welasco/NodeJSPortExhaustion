@@ -15,6 +15,7 @@ EOL
 cat /etc/motd
 
 service ssh start
+service nscd start
 
 mkdir "$PM2HOME"
 chmod 777 "$PM2HOME"
