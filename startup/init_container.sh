@@ -17,10 +17,6 @@ cat /etc/motd
 service ssh start
 service nscd start
 
-mkdir "$PM2HOME"
-chmod 777 "$PM2HOME"
-ln -s /home/LogFiles "$PM2HOME"/logs
-
 # Get environment variables to show up in SSH session
 eval $(printenv | awk -F= '{print "export " $1"="$2 }' >> /etc/profile)
 

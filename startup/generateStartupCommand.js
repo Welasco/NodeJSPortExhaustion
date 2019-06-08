@@ -22,7 +22,7 @@ var startupCommand = fs.readFileSync(CMDFILE, 'utf8').trim();
 
 // No user-provided startup command, check for scripts.start
 if (!startupCommand) {
-    var packageJsonPath = "/home/site/wwwroot/package.json";
+    var packageJsonPath = "/usr/src/app/package.json";
     var json = fs.existsSync(packageJsonPath) && JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
     if (typeof json == 'object' && typeof json.scripts == 'object' && typeof json.scripts.start == 'string') {
         console.log("Found scripts.start in package.json")
@@ -36,7 +36,7 @@ var finalCommand = startupCommand;
 if (!startupCommand) {
     var autos = ['bin/www', 'server.js', 'app.js', 'index.js', 'hostingstart.js'];
     for (var i = 0; i < autos.length; i++) {
-        var filename = "/home/site/wwwroot/" + autos[i];
+        var filename = "/usr/src/app" + autos[i];
         if (fs.existsSync(filename)) {
             console.log("No startup command entered, but found " + filename);
             finalCommand = filename;
