@@ -1,6 +1,6 @@
 {
   "name": "nodejsportexhaustion",
-  "version": "0.0.0",
+  "version": "10.14.1",
   "private": true,
   "scripts": {
     "start": "node --expose-gc ./bin/www"
@@ -23,7 +23,6 @@
     "net": "^1.0.2",
     "node-netstat": "^1.5.0",
     "os": "^0.1.1",
-    "popper.js": "^1.14.4",
-    "applicationinsights":"^1.0.7"
+    "popper.js": "^1.14.4"
   }
 }
