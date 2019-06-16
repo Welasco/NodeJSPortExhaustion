@@ -5,6 +5,7 @@ const ajv = Ajv({ allErrors:true, removeAdditional:'all' });
 var nconf = require('nconf');
 var spawn = require('child_process').spawn;
 var os = require('os')
+var fs = require('fs');
 var netstat = require('./../tools/netstat');
 var webpaicall = require('./../tools/webapicall');
 var socketcmd = require('./../models/socketcmd');
@@ -207,6 +208,191 @@ router.get('/memoryexhaustion/release', function(req, res, next) {
   };
   res.send(htmlvar);
   res.end();
+});
+
+function buildFilePath(dirname,filename) {
+  let dir = '';
+  let dirpath = process.env.TMP;
+  if(dirpath.indexOf('/') > -1) {
+    dir = dirpath + '/' + dirname;
+  }
+  else{
+    dir = dirpath + '\\' + dirname;
+  }
+  if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+  }
+
+  let filedate = new Date();
+  let fdate = filedate.getFullYear().toString()+ (filedate.getMonth()+1).toString() + filedate.getDate().toString() + filedate.getHours().toString() + filedate.getMinutes().toString() + filedate.getSeconds().toString() + filedate.getMilliseconds().toString();  
+  
+  let filepath = ''
+  if(dirpath.indexOf('/') > -1) {
+    filepath = dir + '/' + fdate + '-' + filename;
+  }
+  else{
+    filepath = dir + '\\' + fdate + '-' + filename;
+  }
+  return filepath;
+}
+
+function buildFolderPath(dirname) {
+  let dir = '';
+  let dirpath = process.env.TMP;
+  if(dirpath.indexOf('/') > -1) {
+    dir = dirpath + '/' + dirname;
+  }
+  else{
+    dir = dirpath + '\\' + dirname;
+  }
+  return dir;
+}
+
+function buildFileFolderPath(dirname,filename) {
+  let dir = '';
+  let dirpath = process.env.TMP;
+  if(dirpath.indexOf('/') > -1) {
+    dir = dirpath + '/' + dirname + '/' + filename;
+  }
+  else{
+    dir = dirpath + '\\' + dirname + '\\' + filename;
+  }
+  return dir;
+}
+
+router.get('/filesystem/createfile', function(req, res, next) {
+  let dirname = 'nodedir';
+  let filename = 'nodejstempfile';
+  let bfilepath = '';
+  let filepath = '';
+  let filesamount = 5;
+  let bufferalloc = 1024*1024*100;
+  for (let index = 0; index < filesamount; index++) {
+    // const element = array[index];
+    bfilepath = buildFilePath(dirname,filename);
+    filepath = bfilepath + '-' + index.toString() + '.txt';
+    fs.writeFile(filepath, new Buffer.alloc(bufferalloc), { flag: 'w' },function(err) {
+      if(err) {
+          return console.log(err);
+      }
+      console.log("The file was saved: " + filepath);
+    });
+  }
+  // fs.stat(process.env.TMP+'\\'+dirname,function(err,stats){
+  //   console.log("size: " + stats["size"]);
+  // });
+  
+  var htmlvar = {
+    Date: new Date().toISOString(),
+    Call: 'createfile',
+    SizeAddedtoFolder: filesamount*bufferalloc,
+    FilesPath: buildFolderPath(dirname)
+  };
+  res.send(htmlvar);
+  res.end();
+});
+
+router.get('/filesystem/getfiles', function(req, res, next) {
+  let dirname = 'nodedir';
+  let folderpath = buildFolderPath(dirname);
+  console.log(folderpath);
+  if (fs.existsSync(folderpath)){
+    fs.readdir(folderpath, (err, files) => {
+      console.log("Files: "+files.length);
+      
+      var htmlvar = {
+        Date: new Date().toISOString(),
+        Call: 'getfiles',
+        FilesPath: buildFolderPath(dirname),
+        FilesLength: files.length,
+        FolderSizeBytes: files.length*1024*1024*100,
+        FolderSizeKBs: (files.length*1024*100),
+        FolderSizeMBs: (files.length*100),
+      };
+      res.send(htmlvar);
+      res.end();    
+    });  
+  }
+  else{
+    var htmlvar = {
+      Date: new Date().toISOString(),
+      Call: 'getfiles',
+      FilesPath: buildFolderPath(dirname),
+      FilesLength: 0,
+      FolderSizeBytes: 0,
+      FolderSizeKBs: 0,
+      FolderSizeMBs: 0,
+    };
+    res.send(htmlvar);
+    res.end();    
+  }
+  //fs.stat(process.env.TMP+'\\'+dirname+'\\20196151434421-nodejstempfile-1.txt',function(err,stats){
+  //  console.log("file size: " + stats["size"]);
+  //});
+  /*
+  var htmlvar = {
+    Date: new Date().toISOString()
+  };
+  res.send(htmlvar);
+  res.end();
+  */
+});
+
+router.get('/filesystem/removefiles', function(req, res, next) {
+  let dirname = 'nodedir';
+  //let folderpath = buildFolderPath(dirname)+'\\20196151434421-nodejstempfile-1.txt';
+  let folderpath = buildFolderPath(dirname);
+  console.log(folderpath);
+  if (fs.existsSync(folderpath)){
+    // fs.rmdir(folderpath, (err) => {
+    //   var htmlvar = {};
+    //   if(err) {
+    //     console.log(err);
+    //     htmlvar = {
+    //       FilesDeleted: false
+    //     };        
+    //   }
+    //   else {
+    //     htmlvar = {
+    //       FilesDeleted: true
+    //     };
+    //   }
+    //   res.send(htmlvar);
+    //   res.end();
+    // });  
+
+    fs.readdir(folderpath, (err, files) => {
+      if (err) throw err;
+    
+      for (const file of files) {
+        fs.unlink(buildFileFolderPath(dirname,file), err => {
+          if (err) throw err;
+        });
+      }
+      var htmlvar = {
+        Date: new Date().toISOString(),
+        Call: 'removefiles',
+        FilesPath: buildFolderPath(dirname),
+        FilesLength: 0,
+        FolderSize: 'empty'
+      };
+      res.send(htmlvar);
+      res.end();       
+    });
+
+  }
+  else{
+    var htmlvar = {
+      Date: new Date().toISOString(),
+      Call: 'removefiles',
+      FilesPath: buildFolderPath(dirname),
+      FilesLength: 0,
+      FolderSize: 'empty'
+    };
+    res.send(htmlvar);
+    res.end();    
+  }
+
 });
 
 module.exports = router;

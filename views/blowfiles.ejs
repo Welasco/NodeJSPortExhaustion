@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include partials/header %>
+  </head>
+  <body>
+    <% include partials/menu %>
+    <div class="container body-content">
+
+        <h2>Blow Files</h2>
+        <br>
+
+        <form name="form" action="#" id="formdata" method="POST" class="well span9">
+            <div class="row">
+                <div class="span3 col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <br><br>
+                    <div id="divRefresh"></div>
+                    <br>
+                    <br><br>
+                    <input type="submit" id="runasync" value="Add Files" class="btn btn-primary btn-default" />
+                    <input type="submit" id="runasyncrelease" value="Clean Files" class="btn btn-primary btn-default" />
+                    <input type="submit" id="runasyncrefresh" value="Check Files" class="btn btn-primary btn-default" />
+                    </div>
+            </div>
+        </form>
+        <br>
+        
+        <script src="/Scripts/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript">
+            function apicallasync(type, data, apiurl, callback) {
+                var response = null;
+                var currentURL = window.location.hostname + ":" + window.location.port;
+                var protocol = location.protocol;
+                var apiurl = protocol + "//" + currentURL + apiurl;
+        
+                if (type == 'GET') {
+                    $.ajax({
+                        type: 'GET',
+                        //async: false,
+                        contentType: 'application/json',
+                        url: apiurl,
+                        success: callback,
+                        error: function (res) { debugger; alert("Error: " + res.responseText); }
+                    });
+                    //console.log("Aresult: " + response.responseText);
+                }
+                if (type == 'POST') {
+                    response = $.ajax({
+                        type: 'POST',
+                        data: JSON.stringify(data),
+                        //async: false,
+                        contentType: 'application/json',
+                        url: apiurl,
+        
+                        success: callback,
+                        error: function (res) { debugger; alert("Error: " + res.responseText); }
+        
+                    });
+                    //console.log("POST Response: " + response.responseText);
+                }
+            }
+        
+            function jsonParse(data) {
+                var dataJSON = JSON.parse(data);
+                return dataJSON;
+            }
+            
+            function genHTML(genhtml) {
+                var genhtmlJson = jsonParse(genhtml);
+                var varhtml = "";
+                switch (genhtmlJson.Call) {
+                    case 'createfile':
+                        varhtml += "<B>Date:</B> " + genhtmlJson.Date + "<br>";
+                        varhtml += "<B>FilesPath:</B> " + genhtmlJson.FilesPath + "<br>";
+                        varhtml += "<B>SizeAddedtoFolder:</B> " + genhtmlJson.SizeAddedtoFolder + "<br>";
+                        break;
+                    case 'getfiles':
+                        varhtml += "<B>Date:</B> " + genhtmlJson.Date + "<br>";
+                        varhtml += "<B>FilesPath:</B> " + genhtmlJson.FilesPath + "<br>";   
+                        varhtml += "<B>FilesLength:</B> " + genhtmlJson.FilesLength + "<br>";
+                        varhtml += "<B>FolderSizeBytes:</B> " + genhtmlJson.FolderSizeBytes + "<br>";
+                        varhtml += "<B>FolderSizeKBs:</B> " + genhtmlJson.FolderSizeKBs + "<br>";
+                        varhtml += "<B>FolderSizeMBs:</B> " + genhtmlJson.FolderSizeMBs + "<br>";
+                        break;
+                    case 'removefiles':
+                        varhtml += "<B>Date:</B> " + genhtmlJson.Date + "<br>";
+                        varhtml += "<B>FilesPath:</B> " + genhtmlJson.FilesPath + "<br>";
+                        varhtml += "<B>FilesLength:</B> " + genhtmlJson.FilesLength + "<br>";
+                        varhtml += "<B>FolderSize:</B> " + genhtmlJson.FolderSize + "<br>";
+                        break;
+                
+                    default:
+                        break;
+                }
+
+                return varhtml;
+            }
+        
+            /////////////////////
+            // Async Operations
+            /////////////////////
+            function loadingimage() {
+                var loading = '<img src="/Content/Images/load.gif" />'
+                $('#divRefresh').html(loading);
+            }
+
+            function ajaxcallback(result) {
+                console.log("Reached AjaxCallBack");
+                console.log(JSON.stringify(result));
+                var varhtml = genHTML(JSON.stringify(result));
+                $('#divRefresh').html(varhtml);
+            }
+
+            apicallasync('GET', null,'/api/filesystem/getfiles', ajaxcallback);
+        
+            $('#runasync').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/filesystem/createfile', ajaxcallback);
+            });
+
+            $('#runasyncrelease').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/filesystem/removefiles', ajaxcallback);
+            });     
+            
+            $('#runasyncrefresh').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/filesystem/getfiles', ajaxcallback);
+            });             
+        
+        </script>
+
+        <% include partials/footer %>
+    </div>
+  </body>
+</html>
