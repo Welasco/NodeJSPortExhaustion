@@ -1,0 +1,15 @@
+[Unit]
+Description=nodejsportexhaustion
+After=network.target
+
+[Service]
+ExecStart=/home/victor/NodeJSPortExhaustion/bin/www
+Restart=always
+User=root
+Group=root
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=NODE_ENV=production
+WorkingDirectory=/home/victor/NodeJSPortExhaustion/
+
+[Install]
+WantedBy=multi-user.target
