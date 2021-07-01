@@ -12,6 +12,7 @@ var snatportexhaustionRouter = require('./routes/snatportexhaustion');
 var backend = require('./routes/backend');
 var memoryexhaustion = require('./routes/memoryexhaustion');
 var blowfiles = require('./routes/blowfiles');
+var highcpu = require('./routes/highcpu');
 
 
 
@@ -57,6 +58,7 @@ app.use('/snatportexhaustion', snatportexhaustionRouter);
 app.use('/backend', backend);
 app.use('/memoryexhaustion', memoryexhaustion);
 app.use('/blowfiles', blowfiles);
+app.use('/highcpu', highcpu);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

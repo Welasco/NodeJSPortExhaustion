@@ -13,6 +13,7 @@ var socketstatus = require('./../models/socketstatus');
 
 nconf.file({ file: '././tools/childstatus.json' });
 nconf.set('pid', null);
+nconf.set('pidhighcpu', null);
 nconf.save();
 
 ajv.addSchema(socketcmd.jsonschema_cmd,'jsonschema_cmd');
@@ -394,5 +395,110 @@ router.get('/filesystem/removefiles', function(req, res, next) {
   }
 
 });
+
+//////////////////////////
+// HighCPU
+//////////////////////////
+function startChildProcesshighcpu(cmd) {
+  //var child = spawn('node', ['./../tcpportexhaustion.js', cmd.Host, cmd.Port, cmd.Connections], {detached: true});
+  //var child = spawn('node', ['./../tools/tcpportexhaustion.js', cmd.Host, cmd.Port, cmd.Connections], {detached: false, shell: true});
+  //var child = spawn('node', ['././tools/tcpportexhaustion.js', cmd.Host, cmd.Port, cmd.Connections], {detached: false, shell: true});
+  var childhighcpu = spawn('node', ['././tools/highcpuchild.js', cmd.looptimes], {detached: true});
+  
+  childhighcpu.stdout.on('data', (data) => {
+    console.log(`highcpu child stdout:\n${data}`);
+  });
+  
+  childhighcpu.stderr.on('data', (data) => {
+    console.error(`highcpu child stderr:\n${data}`);
+  });  
+
+  nconf.set('pidhighcpu', childhighcpu.pid);
+  nconf.save();
+  return childhighcpu.pid;
+}
+
+function getcpuload(callback) {
+  var cpustatus = spawn('/bin/bash', ['./../tools/cpu.sh'], {detached: true});
+  let cpuload = 0;
+  cpustatus.stdout.on('data', (data) => {
+    cpuutil = parseFloat(data.toString())
+    console.log("CPU Utilization: "+cpuutil);
+    cpuload = cpuutil
+  });
+  cpustatus.on('close', function(code){
+    callback(cpuload);
+  });   
+}
+
+router.get('/highcpu/get', function(req, res, next) {
+  // var cpustatus = spawn('/bin/bash', ['./../tools/cpu.sh'], {detached: true});
+  // cpustatus.stdout.on('data', (data) => {
+  //     cpuutil = data.toString()
+  //     console.log(`CPU Utilization: ${data}`);
+      
+  // });  
+  getcpuload(function(data){
+    res.send('{\'CPU\': '+data+'}'); 
+  });
+  //res.send('{\'CPU\': '+cpuutil+'}'); 
+  res.end(); 
+});
+
+router.post('/highcpu/start', function(req, res, next) {
+  var cmd = req.body;
+  //let json_validate = ajv.validate(socketcmd.jsonschema_cmd, req.body)
+  if (json_validate) {
+    var currentPid = nconf.get('pid');
+    if (!currentPid != null && !currentPid != "") {
+      let isRunning = netstat.checkNetPid(currentPid);
+      if (!isRunning) {
+        //var child = spawn('node', ['././tools/tcpportexhaustion.js', cmd.target, cmd.port, cmd.connections], {detached: true});
+        //nconf.set('pid', child.pid);
+        //nconf.save();            
+        var cpid = startChildProcesshighcpu(cmd);
+        let Sstatus = socketstatus.GetSocketstatus(cpid);
+
+        res.send(Sstatus); 
+        res.end(); 
+      } 
+      else{
+        let Sstatus = socketstatus.Socketstatus;
+        res.send(Sstatus); 
+        res.end();       
+      }  
+    }
+    else{
+      
+      nconf.set('pid', null);
+      nconf.save();
+      
+      var cpid = startChildProcesshighcpu(cmd);
+      let Sstatus = socketstatus.GetSocketstatus(cpid);      
+      res.send(Sstatus); 
+      res.end();        
+    }
+  }
+  else{
+    res.status(400);
+    res.send("Invalid Command"); 
+    res.end(); 
+  }
+});
+
+router.get('/highcpu/stop', function(req, res, next) {
+
+  var currentPid = nconf.get('pid');
+  if (currentPid != null && currentPid != "") {
+    process.kill(currentPid);
+    nconf.set('pid', null);
+    nconf.save();   
+  }
+  socketstatus.Clean();
+  let Sstatus = socketstatus.Socketstatus;
+  res.send(Sstatus); 
+  res.end();    
+});
+
 
 module.exports = router;

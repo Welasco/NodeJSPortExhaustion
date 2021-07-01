@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <% include partials/header %>
+  </head>
+  <body>
+    <% include partials/menu %>
+    <div class="container body-content">
+
+        <h2>High CPU</h2>
+        <br>
+
+        <form name="form" action="#" id="formdata" method="POST" class="well span9">
+            <div class="row">
+                <div class="span3 col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                    <br><br>
+                    <div id="divRefresh"></div>
+                    <br>
+                    <br><br>
+                    <input type="submit" id="runasync" value="Blow Memory" class="btn btn-primary btn-default" />
+                    <input type="submit" id="runasyncrelease" value="Release Memory" class="btn btn-primary btn-default" />
+                    <input type="submit" id="runasyncrefresh" value="Refresh" class="btn btn-primary btn-default" />
+                    </div>
+            </div>
+        </form>
+        <br>
+        
+        <script src="/Scripts/jquery-3.3.1.min.js"></script>
+        <script type="text/javascript">
+            function apicallasync(type, data, apiurl, callback) {
+                var response = null;
+                var currentURL = window.location.hostname + ":" + window.location.port;
+                var protocol = location.protocol;
+                var apiurl = protocol + "//" + currentURL + apiurl;
+        
+                if (type == 'GET') {
+                    $.ajax({
+                        type: 'GET',
+                        //async: false,
+                        contentType: 'application/json',
+                        url: apiurl,
+                        success: callback,
+                        error: function (res) { debugger; alert("Error: " + res.responseText); }
+                    });
+                    //console.log("Aresult: " + response.responseText);
+                }
+                if (type == 'POST') {
+                    response = $.ajax({
+                        type: 'POST',
+                        data: JSON.stringify(data),
+                        //async: false,
+                        contentType: 'application/json',
+                        url: apiurl,
+        
+                        success: callback,
+                        error: function (res) { debugger; alert("Error: " + res.responseText); }
+        
+                    });
+                    //console.log("POST Response: " + response.responseText);
+                }
+            }
+        
+            function jsonParse(data) {
+                var dataJSON = JSON.parse(data);
+                return dataJSON;
+            }
+            
+            function genHTML(genhtml) {
+                var genhtmlJson = jsonParse(genhtml);
+                var varhtml = "<B>Total allocated:</B> " + genhtmlJson.memoryUsage + ' MB<br>';
+                if (genhtmlJson.memoryUsage > 1000) {
+                    varhtml += "<font color=red><B>You are close to NodeJS memory limit of 1.3 GB. If you continue the App will crash.</B></font><br>";
+                }
+                return varhtml;
+            }
+        
+            /////////////////////
+            // Async Operations
+            /////////////////////
+            function loadingimage() {
+                var loading = '<img src="/Content/Images/load.gif" />'
+                $('#divRefresh').html(loading);
+            }
+
+            function ajaxcallback(result) {
+                console.log("Reached AjaxCallBack");
+                console.log(JSON.stringify(result));
+                var varhtml = genHTML(JSON.stringify(result));
+                $('#divRefresh').html(varhtml);
+            }
+
+            apicallasync('GET', null,'/api/memoryexhaustion/get', ajaxcallback);
+        
+            $('#runasync').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/memoryexhaustion/blow', ajaxcallback);
+            });
+
+            $('#runasyncrelease').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/memoryexhaustion/release', ajaxcallback);
+            });     
+            
+            $('#runasyncrefresh').click(function (e) {
+                e.preventDefault();
+                loadingimage();
+                apicallasync('GET', null,'/api/memoryexhaustion/get', ajaxcallback);
+            });             
+        
+        </script>
+
+        <% include partials/footer %>
+    </div>
+  </body>
+</html>
