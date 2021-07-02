@@ -416,8 +416,16 @@ function getcpuload(callback) {
 }
 
 router.get('/highcpu/get', function(req, res, next) {
+  var cpuobj = {
+    "CPU": 0,
+    "numOfCpus": 0
+  };
   getcpuload(function(data){
-    res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
+    cpuobj.CPU = data;
+    cpuobj.numOfCpus = os.cpus().length;
+    //console.log(cpuobj);
+    res.send(cpuobj);
+    res.end();
   });
 
   ////////////////////////////////////////
@@ -504,9 +512,17 @@ router.post('/highcpu/start', function(req, res, next) {
   console.log(cmd);
   controlhighcpuprocess(cmd);
 
+  var cpuobj = {
+    "CPU": 0,
+    "numOfCpus": 0
+  };
   getcpuload(function(data){
-    res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
-  });
+    cpuobj.CPU = data;
+    cpuobj.numOfCpus = os.cpus().length;
+    //console.log(cpuobj);
+    res.send(cpuobj);
+    res.end();
+  });  
 
 });
 
@@ -525,9 +541,25 @@ router.get('/highcpu/stop', function(req, res, next) {
   nconf.set('pidhighcpu', processArr);
   nconf.save();
 
+  // getcpuload(function(data){
+  //   res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
+  // });  
+
+
+  var cpuobj = {
+    "CPU": 0,
+    "numOfCpus": 0
+  };
   getcpuload(function(data){
-    res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
-  });  
+    cpuobj.CPU = data;
+    cpuobj.numOfCpus = os.cpus().length;
+    //console.log(cpuobj);
+    res.send(cpuobj);
+    res.end();
+  });
+
+
+  
 });
 
 

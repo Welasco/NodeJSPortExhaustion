@@ -14,19 +14,41 @@
             <div class="row">
                 <div class="span3 col-xs-12 col-sm-12 col-md-12 col-lg-12">
                     <div class="form-group">
-                        <label>Target:</label>  <input type="text" id="target" name="target" value="www.google.com" class="form-control span3 text-center" /><br>
-                        <label>Port:</label>  <input type="number" id="port" name="port" value="80" min="1" max="65535" class="form-control span3 text-center" /><br>
-                        <label>Connections:</label>  <input type="number" id="connections" name="connections" value="30" min="1" max="65535" class="form-control span3 text-center" />
+                        <!-- <label>Number of CPUs:</label>  <input type="number" id="numOfCpus" name="numOfCpus" value="0" class="form-control span3 text-center" /><br> -->
+                        <label>Number of CPUs:</label> <br>Description: Select the amount of CPU cores to burn CPU.<br> <select name="NumberCPUs" id="numofcpusselectid" class="form-control span3 text-center"></select> <br>
+                        <label>CPU Cycles:</label> <br>Description: Select the amount of CPU cycles the algorithm should be executed per CPU Core.<br>  <input type="number" id="looptimes" name="looptimes" value="1" min="1" max="5" class="form-control span3 text-center" /><br>
+                        <!-- <label>Current CPU Utilization:</label>  <input type="number" id="cpuutil" name="cpuutil" value="30" min="1" max="65535" class="form-control span3 text-center" /> -->
+                        <br>
+                        <!-- <input list="html_elements" name="web_language" class="form-control span3 text-center"/>
+                        <datalist id="html_elements">
+                            <option value="Anchor_tag" > </option>
+                            <option value="Aside _tag" selected="selected"> </option>
+                        </datalist>
+                        <br>
+
+                        <input list="listnumofcpus" id="listnumofcpusid" name="NumberCPUs" placeholder="1" class="form-control span3 text-center">
+                        <datalist id="listnumofcpus">
+                        </datalist> -->
+
+                        <!-- <select name="NumberCPUs" id="numofcpusselectid" class="form-control span3 text-center">
+                            <option value="1">option1</option>
+                            <option value="2">option2</option>
+                            <option value="3">option3</option>
+                            <option value="4">option3</option>
+                        </select>                         -->
+
+
+
                     </div>
                     <br><br>
                     <div id="divRefresh"></div>
                     <br>
-                    <input type="submit" id="run" value="Run" class="btn btn-primary btn-default" />
-                    <input type="submit" id="GetStatus" value="Status" class="btn btn-primary btn-default" />
+                    <!-- <input type="submit" id="run" value="Run" class="btn btn-primary btn-default" />
+                    <input type="submit" id="GetStatus" value="Status" class="btn btn-primary btn-default" /> -->
                     <!--<input type="submit" id="Reconnect" value="Reconnect" class="btn btn-primary btn-default" />-->
                     <br><br>
-                    <input type="submit" id="runasync" value="RunAsync" class="btn btn-primary btn-default" />
-                    <input type="submit" id="GetStatusAsync" value="StatusAsync" class="btn btn-primary btn-default" />
+                    <input type="submit" id="start" value="Start" class="btn btn-primary btn-default" />
+                    <input type="submit" id="GetStatusAsync" value="Get Status" class="btn btn-primary btn-default" />
                     <!--<input type="submit" id="ReconnectAsync" value="ReconnectAsync" class="btn btn-primary btn-default" />-->
                     </div>
             </div>
@@ -35,43 +57,6 @@
         
         <script src="/Scripts/jquery-3.3.1.min.js"></script>
         <script type="text/javascript">
-            function apicall(type, data, apiurl) {
-                var response = null;
-                var currentURL = window.location.hostname + ":" + window.location.port;
-                var protocol = location.protocol;
-                var apiurl = protocol + "//" + currentURL + apiurl;
-        
-                if (type == 'GET') {
-                    response = $.ajax({
-                        type: 'GET',
-                        async: false,
-                        contentType: 'application/json',
-                        url: apiurl
-                    });
-                    //console.log("Aresult: " + response.responseText);
-                    return response.responseText;
-                }
-                if (type == 'POST') {
-                    response = $.ajax({
-                        type: 'POST',
-                        data: JSON.stringify(data),
-                        async: false,
-                        contentType: 'application/json',
-                        url: apiurl,
-        
-                        success: function (res) {
-                            console.log("DataGet: " + res.responseText);
-        
-                            response = res;
-                        },
-                        error: function (res) { alert("Error: " + res.responseText); }
-        
-                    });
-                    //console.log("POST Response: " + response.responseText);
-                    return response.responseText;
-                }
-            }
-        
             function apicallasync(type, data, apiurl, callback) {
                 var response = null;
                 var currentURL = window.location.hostname + ":" + window.location.port;
@@ -112,62 +97,14 @@
         
             function genHTML(genhtml) {
                 var genhtmlJson = jsonParse(genhtml);
-                var varhtml = "OpenSockets: " + genhtmlJson.OpenSockets + '<br>';
-                varhtml += "ClosedSockets: " + genhtmlJson.ClosedSockets + '<br>';
-                varhtml += "ConnectionStatus: " + genhtmlJson.ConnectionStatus + '<br>';
-                varhtml += "ServerDateTime: " + genhtmlJson.ServerDateTime + '<br>';
+                console.log('genHTML: '+genhtmlJson);
+                console.log('genHTML CPU: '+genhtmlJson.CPU);
+                console.log('genHTML Cores: '+genhtmlJson.numOfCpus);
+                console.log('genHTML JSON:' + JSON.stringify(genhtmlJson));
+                var varhtml = "<b>Current CPU Utilization: </b>" + genhtmlJson.CPU + '%'+ '<br><br>';
+                varhtml += "Number of CPUs available: " + genhtmlJson.numOfCpus + '<br>';
                 return varhtml;
             }
-        
-            var currentStatus = apicall('GET', '', '/api/Socket');
-            var currentStatusJSON = jsonParse(currentStatus);
-            if (currentStatusJSON.ConnectionStatus == "Connected" || currentStatusJSON.ClosedSockets > 0) {
-                $("#run").val('Stop');
-                $("#runasync").val('StopAsync');
-                var varhtml = genHTML(currentStatus);
-                $('#divRefresh').html(varhtml);
-            }
-        
-            $('#run').click(function (e) {
-                e.preventDefault();
-                var data = {};
-                data.Host = $('#target').val();
-                data.Port = parseInt($("#port").val());
-                data.Connections = parseInt($("#connections").val());
-                data.status = $("#run").val();
-        
-                if (data.status == 'Run') {
-                    $("#run").val('Stop');
-                    var rRun = apicall('POST', data, '/api/Socket/Start');
-                    console.log(rRun);
-                    var varhtml = genHTML(rRun);
-                    $('#divRefresh').html(varhtml);
-                }
-                else if (data.status == 'Stop') {
-                    $("#run").val('Run');
-                    var rStop = apicall('GET', '', '/api/Socket/Stop');
-                    var varhtml = genHTML(rStop);
-                    $('#divRefresh').html(varhtml);
-                }
-            });
-        
-            $('#GetStatus').click(function (e) {
-                e.preventDefault();
-                var rGetStatus = apicall('GET','','/api/Socket');
-                console.log("rGetStatus: " + rGetStatus);
-                var varhtml = genHTML(rGetStatus);
-                $('#divRefresh').html(varhtml);
-        
-            });
-        
-            $('#Reconnect').click(function (e) {
-                e.preventDefault();
-                var rReconnect = apicall('GET', '', '/api/Socket/ReconnectSocket');
-                console.log("rReconnect: " + rReconnect);
-                var varhtml = genHTML(rReconnect);
-                $('#divRefresh').html(varhtml);
-        
-            });
         
             /////////////////////
             // Async Operations
@@ -184,38 +121,81 @@
                 $('#divRefresh').html(varhtml);
             }
         
-            $('#runasync').click(function (e) {
+            $('#start').click(function (e) {
                 e.preventDefault();
                 var data = {};
-                data.Host = $('#target').val();
-                data.Port = parseInt($("#port").val());
-                data.Connections =  parseInt($("#connections").val());
-                data.status = $("#runasync").val();
-        
-                if (data.status == 'RunAsync') {
-                    $("#runasync").val('StopAsync');
+                data.numOfCpus = $("#numofcpusselectid").val();
+
+                data.looptimes = parseInt($("#looptimes").val());
+                data.status = $("#start").val();
+                console.log('data: '+JSON.stringify(data));
+                if (data.status == 'Start') {
+                    $("#start").val('Stop');
                     loadingimage();
-                    apicallasync('POST', data, '/api/Socket/Start', ajaxcallback);
+                    apicallasync('POST', data, '/api/highcpu/start', ajaxcallback);
                 }
-                else if (data.status == 'StopAsync') {
-                    $("#runasync").val('RunAsync');
-                    //var rStop = apicall('GET', '', '/api/Socket/Stop');
-                    apicallasync('GET', data, '/api/Socket/Stop', ajaxcallback);
+                else if (data.status == 'Stop') {
+                    $("#start").val('Start');
+                    apicallasync('GET', data, '/api/highcpu/stop', ajaxcallback);
                 }
             });
+
+            // backup working
+            // $('#start').click(function (e) {
+            //     e.preventDefault();
+            //     var data = {};
+            //     data.numOfCpus = $('#numOfCpus').val();
+            //     data.looptimes = parseInt($("#looptimes").val());
+            //     //data.cpuutil =  parseInt($("#cpuutil").val());
+            //     data.status = $("#start").val();
+        
+            //     if (data.status == 'Start') {
+            //         $("#start").val('Stop');
+            //         loadingimage();
+            //         apicallasync('POST', data, '/api/highcpu/start', ajaxcallback);
+            //     }
+            //     else if (data.status == 'Stop') {
+            //         $("#start").val('Start');
+            //         apicallasync('GET', data, '/api/highcpu/stop', ajaxcallback);
+            //     }
+            // });            
         
             $('#GetStatusAsync').click(function (e) {
                 e.preventDefault();
                 loadingimage();
-                apicallasync('GET', '', '/api/Socket', ajaxcallback);
+                apicallasync('GET', '', '/api/highcpu/get', ajaxcallback);
             });
-        
-            $('#ReconnectAsync').click(function (e) {
-                e.preventDefault();
-                loadingimage();
-                apicallasync('GET', '', '/api/Socket/ReconnectSocket', ajaxcallback);
-            });
-        
+
+            function firstload() {
+                apicallasync('GET', '', '/api/highcpu/get', function(result){
+                    var data = JSON.stringify(result)
+                    var dataJson = jsonParse(data);
+                    $("#numOfCpus").val(dataJson.numOfCpus);
+
+                    var str=''; // variable to store the options
+                    var cpucount = 1;
+                    for (var i=0; i < dataJson.numOfCpus;++i){
+
+                        str += '<option value="'+cpucount+'">'+cpucount+'</option>'; // Storing options in variable
+                        cpucount++
+                    }
+                    var my_list=document.getElementById("numofcpusselectid");
+                    my_list.innerHTML = str;
+                    console.log('Number in the list:'+$("#listnumofcpusid").val());
+                    console.log('Number in the placeholder:'+$("#listnumofcpusid").attr('placeholder'));
+
+                    if ($("#listnumofcpusid").attr('placeholder') != 1) {
+                        
+                    }
+                    
+
+                    var varhtml = genHTML(JSON.stringify(result));
+                    $('#divRefresh').html(varhtml);                    
+                });
+            }
+
+            firstload();
+                
         </script>
 
         <% include partials/footer %>
