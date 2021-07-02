@@ -13,7 +13,7 @@ var socketstatus = require('./../models/socketstatus');
 
 nconf.file({ file: '././tools/childstatus.json' });
 nconf.set('pid', null);
-nconf.set('pidhighcpu', null);
+nconf.set('pidhighcpu', []);
 nconf.save();
 
 ajv.addSchema(socketcmd.jsonschema_cmd,'jsonschema_cmd');
@@ -399,10 +399,54 @@ router.get('/filesystem/removefiles', function(req, res, next) {
 //////////////////////////
 // HighCPU
 //////////////////////////
+function getcpuload(callback) {
+  var cpustatus = spawn('/bin/bash', ['././tools/cpu.sh'], {detached: true});
+  let cpuload = 0;
+  //console.log('cpustatus: '+JSON.stringify(cpustatus));
+  cpustatus.stdout.on('data', function (data) {
+    cpuload = parseFloat(data.toString());
+    //console.log("CPU Utilization: "+cpuload);
+  });
+  cpustatus.on('close', function(code){
+    callback(cpuload);
+  });
+  cpustatus.on("error", function (data) {
+    console.log('error: '+data);
+  });    
+}
+
+router.get('/highcpu/get', function(req, res, next) {
+  getcpuload(function(data){
+    res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
+  });
+
+  ////////////////////////////////////////
+  // working
+  ////////////////////////////////////////
+  // var cpustatus = spawn('/bin/bash', ['././tools/cpu.sh'], {detached: true});
+  // //var cpustatus = spawn('ls', ['-la'], {detached: true});
+  // let cpuload = 0;
+  // console.log('cpustatus: '+JSON.stringify(cpustatus));
+  // cpustatus.stdout.on('data', function (data) {
+  //   cpuload = parseFloat(data.toString());
+  //   console.log("CPU Utilization: "+cpuload);
+  // });
+  // cpustatus.on('close', function(code){
+  //   //res.end(cpuload);
+  //   res.end('{\'CPU\': '+cpuload+'}'); 
+  // });
+  // cpustatus.on("error", function (data) {
+  //   console.log('error: '+data);
+  //   res.end('error: '+data); 
+  // }); 
+  ////////////////////////////////////////
+
+  //res.end('{\'CPU\': 1234}'); 
+  //res.send('{\'CPU\': '+cpuutil+'}'); 
+  //res.end(); 
+});
+
 function startChildProcesshighcpu(cmd) {
-  //var child = spawn('node', ['./../tcpportexhaustion.js', cmd.Host, cmd.Port, cmd.Connections], {detached: true});
-  //var child = spawn('node', ['./../tools/tcpportexhaustion.js', cmd.Host, cmd.Port, cmd.Connections], {detached: false, shell: true});
-  //var child = spawn('node', ['././tools/tcpportexhaustion.js', cmd.Host, cmd.Port, cmd.Connections], {detached: false, shell: true});
   var childhighcpu = spawn('node', ['././tools/highcpuchild.js', cmd.looptimes], {detached: true});
   
   childhighcpu.stdout.on('data', (data) => {
@@ -413,91 +457,77 @@ function startChildProcesshighcpu(cmd) {
     console.error(`highcpu child stderr:\n${data}`);
   });  
 
-  nconf.set('pidhighcpu', childhighcpu.pid);
-  nconf.save();
+  // nconf.set('pidhighcpu', childhighcpu.pid);
+  // nconf.save();
   return childhighcpu.pid;
 }
 
-function getcpuload(callback) {
-  var cpustatus = spawn('/bin/bash', ['./../tools/cpu.sh'], {detached: true});
-  let cpuload = 0;
-  cpustatus.stdout.on('data', (data) => {
-    cpuutil = parseFloat(data.toString())
-    console.log("CPU Utilization: "+cpuutil);
-    cpuload = cpuutil
-  });
-  cpustatus.on('close', function(code){
-    callback(cpuload);
-  });   
+function pidIsRunning(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch(e) {
+    return false;
+  }
 }
 
-router.get('/highcpu/get', function(req, res, next) {
-  // var cpustatus = spawn('/bin/bash', ['./../tools/cpu.sh'], {detached: true});
-  // cpustatus.stdout.on('data', (data) => {
-  //     cpuutil = data.toString()
-  //     console.log(`CPU Utilization: ${data}`);
-      
-  // });  
-  getcpuload(function(data){
-    res.send('{\'CPU\': '+data+'}'); 
-  });
-  //res.send('{\'CPU\': '+cpuutil+'}'); 
-  res.end(); 
-});
+function killhighcpuprocess(processArr) {
+  for (let processpid = 0; processpid < processArr.length; processpid++) {
+    if (pidIsRunning(processArr[processpid])) {
+      process.kill(processArr[processpid]);
+    }
+  }
+}
+
+function controlhighcpuprocess(cmd) {
+  const numOfCpus = cmd.numOfCpus
+  var processArr = [];
+  processArr = nconf.get('pidhighcpu');
+  if (processArr != null) {
+    if (processArr.length > 0) {
+      killhighcpuprocess(processArr);
+    }
+  }
+  processArr = [];
+  
+  for (let cpucount = 0; cpucount < numOfCpus; cpucount++) {
+    var processId = startChildProcesshighcpu(cmd);
+    processArr.push(processId);
+  }
+  nconf.set('pidhighcpu', processArr);
+  nconf.save();
+
+}
 
 router.post('/highcpu/start', function(req, res, next) {
   var cmd = req.body;
-  //let json_validate = ajv.validate(socketcmd.jsonschema_cmd, req.body)
-  if (json_validate) {
-    var currentPid = nconf.get('pid');
-    if (!currentPid != null && !currentPid != "") {
-      let isRunning = netstat.checkNetPid(currentPid);
-      if (!isRunning) {
-        //var child = spawn('node', ['././tools/tcpportexhaustion.js', cmd.target, cmd.port, cmd.connections], {detached: true});
-        //nconf.set('pid', child.pid);
-        //nconf.save();            
-        var cpid = startChildProcesshighcpu(cmd);
-        let Sstatus = socketstatus.GetSocketstatus(cpid);
+  console.log(cmd);
+  controlhighcpuprocess(cmd);
 
-        res.send(Sstatus); 
-        res.end(); 
-      } 
-      else{
-        let Sstatus = socketstatus.Socketstatus;
-        res.send(Sstatus); 
-        res.end();       
-      }  
-    }
-    else{
-      
-      nconf.set('pid', null);
-      nconf.save();
-      
-      var cpid = startChildProcesshighcpu(cmd);
-      let Sstatus = socketstatus.GetSocketstatus(cpid);      
-      res.send(Sstatus); 
-      res.end();        
-    }
-  }
-  else{
-    res.status(400);
-    res.send("Invalid Command"); 
-    res.end(); 
-  }
+  getcpuload(function(data){
+    res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
+  });
+
 });
 
 router.get('/highcpu/stop', function(req, res, next) {
 
-  var currentPid = nconf.get('pid');
-  if (currentPid != null && currentPid != "") {
-    process.kill(currentPid);
-    nconf.set('pid', null);
-    nconf.save();   
+  var processArr = [];
+  processArr = nconf.get('pidhighcpu');
+
+  //if (processArr != null || processArr.length > 0) {
+  if (processArr != null) {
+    if (processArr.length > 0) {
+      killhighcpuprocess(processArr);
+    }
   }
-  socketstatus.Clean();
-  let Sstatus = socketstatus.Socketstatus;
-  res.send(Sstatus); 
-  res.end();    
+  processArr = [];
+  nconf.set('pidhighcpu', processArr);
+  nconf.save();
+
+  getcpuload(function(data){
+    res.end('{\'CPU\': '+data+', \'numOfCpus\': '+os.cpus().length+'}'); 
+  });  
 });
 
 
