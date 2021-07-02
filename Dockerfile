@@ -7,7 +7,7 @@ COPY startup /opt/startup
 
 # Install Tools - nscd is a DNS Cache
 RUN apt-get update \
-    && apt-get install -y net-tools nano openssh-server vim curl wget tcptraceroute nscd tcpdump dns-utils
+    && apt-get install -y net-tools nano openssh-server vim curl wget tcptraceroute nscd tcpdump dnsutils
 
 RUN npm install -g pm2 \
     && mkdir -p /usr/src/app \
