@@ -214,6 +214,9 @@ router.get('/memoryexhaustion/release', function(req, res, next) {
 function buildFilePath(dirname,filename) {
   let dir = '';
   let dirpath = process.env.TMP;
+  if(typeof dirpath === 'undefined'){
+    dirpath = process.env.PWD
+  }    
   if(dirpath.indexOf('/') > -1) {
     dir = dirpath + '/' + dirname;
   }
@@ -240,6 +243,9 @@ function buildFilePath(dirname,filename) {
 function buildFolderPath(dirname) {
   let dir = '';
   let dirpath = process.env.TMP;
+  if(typeof dirpath === 'undefined'){
+    dirpath = process.env.PWD
+  }  
   if(dirpath.indexOf('/') > -1) {
     dir = dirpath + '/' + dirname;
   }
@@ -252,6 +258,9 @@ function buildFolderPath(dirname) {
 function buildFileFolderPath(dirname,filename) {
   let dir = '';
   let dirpath = process.env.TMP;
+  if(typeof dirpath === 'undefined'){
+    dirpath = process.env.PWD
+  }
   if(dirpath.indexOf('/') > -1) {
     dir = dirpath + '/' + dirname + '/' + filename;
   }
