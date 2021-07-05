@@ -1,4 +1,4 @@
-FROM node:11.7.0-stretch
+FROM node:16.3.0-buster
 
 # Create app directory
 WORKDIR /usr/src/app
