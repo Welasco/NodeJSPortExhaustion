@@ -45,9 +45,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 // app.use('/', express.static(__dirname + '/www')); // redirect root
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js')); // redirect bootstrap JS
 app.use('/js', express.static(__dirname + '/node_modules/jquery/dist')); // redirect JS jQuery
-app.use('/js', express.static(__dirname + '/public/Scripts')); // redirect JS jQuery
+//app.use('/js', express.static(__dirname + '/public/Scripts')); // redirect JS jQuery -- *** used for modernizr-2.8.3.js
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css')); // redirect CSS bootstrap
-app.use('/css', express.static(__dirname + '/public/Content')); // redirect CSS bootstrap
+//app.use('/css', express.static(__dirname + '/public/Content')); // redirect CSS bootstrap -- *** used for bootstrap and Site.css
+
+// /node_modules/bootstrap/dist/css
 
 
 
